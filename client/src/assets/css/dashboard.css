@@ -1,0 +1,153 @@
+body main {
+  font-size: .875rem;
+}
+
+.feather {
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+}
+
+/*
+ * Sidebar
+ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  padding: 48px 0 0; /* Height of navbar */
+  box-shadow: inset -1px 0 0 #8dbba0;
+}
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 48px);
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+@supports ((position: -webkit-sticky) or (position: sticky)) {
+  .sidebar-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color:#176f3c;
+}
+
+.sidebar .nav-link .feather {
+  margin-right: 4px;
+  color: #76a88b;
+}
+
+.sidebar .nav-link.active {
+  color: #176f3c;
+}
+
+.sidebar .nav-link:hover .feather,
+.sidebar .nav-link.active .feather {
+  color: inherit;
+}
+
+.sidebar-heading {
+  font-size: .75rem;
+  text-transform: uppercase;
+}
+
+/*
+ * Content
+ */
+
+[role="main"] {
+  padding-top: 48px; /* Space for fixed navbar */
+}
+
+/*
+ * Navbar
+ */
+.bg-green {
+  background-color: #176f3c;
+}
+ 
+.navbar-brand {
+  font-size: 1rem;
+  background-color: #fff;
+  box-shadow: inset -1px 0 0 #6d997f;
+}
+
+.navbar .form-control {
+  padding: .75rem 1rem;
+  border-width: 0;
+  border-radius: 0;
+}
+
+.nav-choice {
+  font-weight: 400;
+  padding-left: 20px;
+  margin-top: 10px;
+}
+
+.nav-icon {
+  padding-right: 10px;
+}
+
+.form-control-dark {
+  color: #fff;
+  background-color: #8fcfaa;
+  border-color: #176f3c;
+}
+
+.form-control-dark:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 3px #176f3c;
+}
+
+/*
+  Logo
+*/
+.logo-container {
+  text-align: center;
+}
+.logo {
+  padding: 0px 0px;
+  width: 37%;
+  height: 37%;
+}
+
+/*
+* CheckBox
+*/
+
+.checkBox {
+  margin-top: 20px;
+}
+
+
+/*
+* Tabs
+*/
+.tab-content {
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+}
+
+/*
+ * Utilities
+ */
+
+.border-top { border-top: 1px solid #6d997f; }
+.border-bottom { border-bottom: 1px solid #6d997f; }
+.form-button {
+  margin: 10px;
+  float: right;
+  width: 150px;
+}
