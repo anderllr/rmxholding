@@ -46,15 +46,15 @@ class Person extends Component {
     }
 
     validateFields = () => {
-        let errors = [''];
+        let errors = [];
         requiredFields.map((field, i) => {
-            if (this.props.person[field] === '') {
+            const value = this.props.person[field]
+            if ((value === '') || (value === '1900-01-01') || (value === 0)) {
                 errors.push(`* Campo (${field}) é obrigatório!`);
             }
-        })
+        });
 
         this.setState({ errors });
-
         return errors.length === 0;
     }
 
@@ -72,7 +72,7 @@ class Person extends Component {
 
     onChange({ target }) {
         const person = { ...this.props.person };
-        let value = target.value.toUpperCase();
+        let value = target.name === 'email' ? target.value.toLowerCase() : target.value.toUpperCase();
         if (target.type === 'checkbox')
             value = target.checked ? 'S' : 'N';
         person[target.name] = value;

@@ -32,11 +32,10 @@ const execCommand = (sql) => {
     pool.query(sql,
         function (err, result) {
             if (err) throw err;
-
+            //        console.log('result: ', result);
             return result.affectedRows > 0
         });
 }
-
 
 
 module.exports = (app) => {
@@ -112,13 +111,14 @@ module.exports = (app) => {
 
     //*************** ROTAS DE INCLUSÃO ********/
     app.post('/api/pessoas', async (req, res) => {
-
+        //console.log('Entrou na API');
         if (!req.body) {
             res.json({
                 error: 'Missing required parameters',
             });
             return;
         }
+        //console.log('Body: ', req.body);
 
         const { id_pessoa, cpf, nome_pessoa, pai_pessoa, mae_pessoa, dt_nasc, est_civil, profissao,
             email, endereco, numero, complemento, cep, bairro, cidade, estado,
@@ -150,14 +150,18 @@ module.exports = (app) => {
                             '${dt_emis_pass}', '${gestor}', '${corretor}', '${dt_venc_pass}' )`;
         }
 
-        await execCommand(query);
+        //console.log('Montou a query: ', req.body);
 
-        if (id_pessoa > 0) {
-            res.json([{ id_pessoa }]);
-        } else {
-            //para o caso de inserção e considerando o cpf e e-mail como obrigatórios
-            query = `SELECT id_pessoa FROM pessoas WHERE cpf='${cpf}' AND email='${email}'`;
-            await execQuery(query, res);
+        const ok = await execCommand(query);
+
+        if (ok) {
+            if (id_pessoa > 0) {
+                res.json([{ id_pessoa }]);
+            } else {
+                //para o caso de inserção e considerando o cpf e e-mail como obrigatórios
+                query = `SELECT id_pessoa FROM pessoas WHERE cpf='${cpf}' AND email='${email}'`;
+                await execQuery(query, res);
+            }
         }
 
     })
