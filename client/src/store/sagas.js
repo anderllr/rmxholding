@@ -6,7 +6,9 @@ import {
   changeMoedas,
   changeSelectedAporte,
   changeAportes,
-  deleteAporte
+  deleteAporte,
+  changePersonError,
+  changeAporteError
 } from './actions'
 
 
@@ -72,39 +74,39 @@ function* fetchMoedas(action) {
 }
 
 function* fetchSavePerson(action) {
-  let id_pessoa = action.payload.id_pessoa;
+  let id_pessoaIni = action.payload.id_pessoa;
   let result = yield call(Client.savePerson, action.payload);
-  if (id_pessoa === 0) {
-    const person = { ...action.payload };
-    person.id_pessoa = result[0].id_pessoa;
-    yield put(changeSelectedPerson(person));
+
+  const { id_pessoa } = result;
+
+  if (!id_pessoa) { //Ocorreu erro
+    yield put(changePersonError(result));
   }
-  // if it is from a redux-action, we get an object with error set not a thrown error
-  if (result !== undefined) {
-    const { error } = result;
-    if (error) {
-      throw result;
+  else {
+    if (id_pessoaIni === 0) { //Estava dando update
+      const person = { ...action.payload };
+      person.id_pessoa = id_pessoa;
+      yield put(changeSelectedPerson(person));
     }
   }
-  return result;
 }
 
 function* fetchSaveAporte(action) {
-  let id_aporte = action.payload.id_aporte;
+  let id_aporteIni = action.payload.id_aporte;
   let result = yield call(Client.saveAporte, action.payload);
-  if (id_aporte === 0) {
-    const aporte = { ...action.payload };
-    aporte.id_aporte = result[0].id_aporte;
-    yield put(changeSelectedAporte(aporte));
+
+  const { id_aporte } = result;
+
+  if (!id_aporte) { //Ocorreu erro
+    yield put(changeAporteError(result));
   }
-  // if it is from a redux-action, we get an object with error set not a thrown error
-  if (result !== undefined) {
-    const { error } = result;
-    if (error) {
-      throw result;
+  else {
+    if (id_aporteIni === 0) {
+      const aporte = { ...action.payload };
+      aporte.id_aporte = result[0].id_aporte;
+      yield put(changeSelectedAporte(aporte));
     }
   }
-  return result;
 }
 
 function* fetchDeleteAporte(action) {

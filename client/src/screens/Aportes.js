@@ -4,7 +4,8 @@ import {
     Container, Col, Form,
     FormGroup, Label, Input,
     Button, TabContent, TabPane, Nav,
-    NavItem, NavLink, Row
+    NavItem, NavLink, Row,
+    Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap';
 import Select from 'react-select';
 import SimpleCurrencyInput from 'react-simple-currency';
@@ -12,7 +13,7 @@ import moment from 'moment';
 
 import classnames from 'classnames';
 
-import { changeSelectedAporte, newAporte } from '../store/actions';
+import { changeSelectedAporte, newAporte, changeAporteError } from '../store/actions';
 
 const requiredFields = [
     'id_investidor',
@@ -30,7 +31,8 @@ const initialState = {
     selectedGestor: '',
     selectedCorretor: '',
     vl_deposito: 0,
-    vl_retorno: 0
+    vl_retorno: 0,
+    modal: false
 };
 
 class Aportes extends Component {
@@ -90,6 +92,15 @@ class Aportes extends Component {
         this.props.fetchAportes({ id_investidor })
     }
 
+    cleanError = () => {
+        this.props.changeError({
+            error: false,
+            errorMessage: ''
+        })
+        //to prevent problems in component willmount
+        this.setState({ modal: false });
+
+    }
     componentDidMount() {
         const { id_pessoa, nome_pessoa } = this.props.person
         if (id_pessoa > 0) {
@@ -112,6 +123,8 @@ class Aportes extends Component {
         } else {
             this.fetchAportes(-1);
         }
+
+        this.cleanError();
     }
 
     validateFields = () => {
@@ -148,6 +161,7 @@ class Aportes extends Component {
         if (this.validateFields()) {
             await this.props.fetchSaveAporte(this.props.aporte);
             await this.fetchAportes(this.props.aporte.id_investidor);
+            this.setState({ modal: true });
         }
     }
 
@@ -277,6 +291,14 @@ class Aportes extends Component {
                 type={type}
                 value={(type === 'date') ? moment(this.props.aporte[name]).format('YYYY-MM-DD') : this.props.aporte[name] || value} />
         </Col>
+
+    renderModal() {
+
+        return this.props.aporteResult.error ? (
+            <p className="text-danger"><strong>Erro ao Salvar: </strong> {this.props.aporteResult.errorMessage} </p>
+        ) : <p className="text-success"><strong>Salvo com Sucesso </strong></p>
+    }
+
     render() {
         const moedas = this.props.moedas;
         const optionMoedas = moedas.map((moeda) =>
@@ -415,18 +437,28 @@ class Aportes extends Component {
                         </Col>
                     </FormGroup>
                 </Form>
+                <Modal isOpen={this.state.modal} backdrop={true}>
+                    <ModalHeader toggle={() => this.cleanError()}>Cadastro de Pessoas</ModalHeader>
+                    <ModalBody>
+                        {this.renderModal()}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color={`${this.props.aporteResult.error ? 'danger' : 'success'}`} onClick={() => this.cleanError()}>Ok</Button>{' '}
+                    </ModalFooter>
+                </Modal>
             </Container>
         );
     }
 }
 
-const mapStateToProps = ({ reducer: { selectedAporte, moedas, searchData, selectedPerson, aportes } }) => {
+const mapStateToProps = ({ reducer: { selectedAporte, moedas, searchData, selectedPerson, aportes, aporteResult } }) => {
     return {
         aporte: selectedAporte,
         moedas,
         searchData,
         person: selectedPerson,
-        aportes
+        aportes,
+        aporteResult
     }
 }
 
@@ -438,7 +470,8 @@ const mapDispatchToProps = (dispatch) => {
         newAporte: () => dispatch(newAporte()),
         fetchPessoas: name => dispatch({ type: 'FETCH_SEARCH_DATA', payload: name }),
         fetchAportes: id_investidor => dispatch({ type: 'FETCH_APORTES', payload: id_investidor }),
-        deleteAporte: id => dispatch({ type: 'DELETE_APORTE', payload: id })
+        deleteAporte: id => dispatch({ type: 'DELETE_APORTE', payload: id }),
+        changeError: error => dispatch(changeAporteError(error)),
     }
 }
 

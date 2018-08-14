@@ -29,6 +29,16 @@ export const changeSelectedPerson = (person) => ({
   person
 });
 
+export const changePersonError = (result) => ({
+  type: 'REQUEST_PERSON_ERROR',
+  result
+})
+
+export const changeAporteError = (result) => ({
+  type: 'REQUEST_APORTE_ERROR',
+  result
+})
+
 export const changeSelectedAporte = (aporte) => ({
   type: 'CHANGE_SELECTED_APORTE',
   aporte
@@ -38,6 +48,8 @@ export const deleteAporte = (id) => ({
   type: 'DELETE_APORTE',
   id
 });
+
+
 
 export const newPerson = () => ({ type: 'NEW_PERSON' });
 

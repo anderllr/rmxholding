@@ -44,13 +44,20 @@ var initialState = {
     vl_retorno: 0,
     id_moeda: 1
   },
+  personResult: {
+    error: false,
+    errorMessage: ''
+  },
+  aporteResult: {
+    error: false,
+    errorMessage: ''
+  },
   aportes: [],
   moedas: []
 };
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-
     case 'CHANGE_SEARCH_DATA':
       return {
         ...state,
@@ -98,6 +105,16 @@ const reducer = (state = initialState, action) => {
           return aporte.id_aporte !== action.id;
         }),
         selectedAporte: initialState.selectedAporte
+      }
+    case 'REQUEST_PERSON_ERROR':
+      return {
+        ...state,
+        personResult: action.result
+      }
+    case 'REQUEST_APORTE_ERROR':
+      return {
+        ...state,
+        aporteResult: action.result
       }
     default:
       return state

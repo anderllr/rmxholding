@@ -4,13 +4,14 @@ import {
     Container, Col, Form,
     FormGroup, Label, Input,
     Button, TabContent, TabPane, Nav,
-    NavItem, NavLink, Row, CustomInput
+    NavItem, NavLink, Row, CustomInput,
+    Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap';
 import moment from 'moment';
 
 import classnames from 'classnames';
 
-import { changeSelectedPerson, newPerson } from '../store/actions';
+import { changeSelectedPerson, newPerson, changePersonError } from '../store/actions';
 
 const requiredFields = [
     'cpf',
@@ -25,7 +26,8 @@ class Person extends Component {
         this.toggle = this.toggle.bind(this);
         this.state = {
             activeTab: '1',
-            errors: ['']
+            errors: [''],
+            modal: false
         };
     }
 
@@ -39,6 +41,17 @@ class Person extends Component {
 
     componentWillMount() {
         this.props.fetchPerson({ email: this.props.email });
+        this.cleanError();
+    }
+
+    cleanError = () => {
+        this.props.changeError({
+            error: false,
+            errorMessage: ''
+        })
+        //to prevent problems in component willmount
+        this.setState({ modal: false });
+
     }
 
     fetchAportes = async (id_investidor) => {
@@ -58,11 +71,12 @@ class Person extends Component {
         return errors.length === 0;
     }
 
-    onSubmit(e) {
+    onSubmit = async (e) => {
         //prevents full page reload
         e.preventDefault();
         if (this.validateFields()) {
-            this.props.fetchSavePerson(this.props.person);
+            await this.props.fetchSavePerson(this.props.person);
+            this.setState({ modal: true });
         }
     }
 
@@ -117,6 +131,14 @@ class Person extends Component {
         });
 
     }
+
+    renderModal() {
+
+        return this.props.personResult.error ? (
+            <p className="text-danger"><strong>Erro ao Salvar: </strong> {this.props.personResult.errorMessage} </p>
+        ) : <p className="text-success"><strong>Salvo com Sucesso </strong></p>
+    }
+
     render() {
         return (
             <Container>
@@ -290,7 +312,7 @@ class Person extends Component {
                     <FormGroup row>
                         <Col sm={10}>
                             <Button className="form-button" color="primary">Salvar</Button>
-                            <Button className="form-button" color="danger">Excluir</Button>
+                            <Button className="form-button" color="danger" onClick={() => console.log('Person Result: ', this.props.personResult)} >Excluir</Button>
                             <Button className="form-button" color="info" onClick={() => this.onNewClick()} >Novo</Button>
                         </Col>
                     </FormGroup>
@@ -303,16 +325,26 @@ class Person extends Component {
                         </Col>
                     </FormGroup>
                 </Form>
+                <Modal isOpen={this.state.modal} backdrop={true}>
+                    <ModalHeader toggle={() => this.cleanError()}>Cadastro de Pessoas</ModalHeader>
+                    <ModalBody>
+                        {this.renderModal()}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color={`${this.props.personResult.error ? 'danger' : 'success'}`} onClick={() => this.cleanError()}>Ok</Button>{' '}
+                    </ModalFooter>
+                </Modal>
             </Container>
         );
     }
 }
 
-const mapStateToProps = ({ reducer: { selectedEmail, selectedPerson, aportes } }) => {
+const mapStateToProps = ({ reducer: { selectedEmail, selectedPerson, aportes, personResult } }) => {
     return {
         email: selectedEmail,
         person: selectedPerson,
-        aportes
+        aportes,
+        personResult
     }
 }
 
@@ -321,6 +353,7 @@ const mapDispatchToProps = (dispatch) => {
         fetchPerson: email => dispatch({ type: 'FETCH_SELECTED_PERSON', payload: email }),
         fetchSavePerson: person => dispatch({ type: 'FETCH_SAVE_PERSON', payload: person }),
         savePerson: person => dispatch(changeSelectedPerson(person)),
+        changeError: error => dispatch(changePersonError(error)),
         newPerson: () => dispatch(newPerson()),
         fetchAportes: id_investidor => dispatch({ type: 'FETCH_APORTES', payload: id_investidor })
     }

@@ -35,7 +35,12 @@ function savePerson(person) {
     body: JSON.stringify(person)
   }).then(checkStatus)
     .then(parseJSON)
-    .catch(error => console.log('Error: ', error));
+    .catch(error => {
+      return {
+        error: true,
+        errorMessage: error.status
+      }
+    });
 }
 
 function saveAporte(aporte) {
@@ -47,7 +52,12 @@ function saveAporte(aporte) {
     body: JSON.stringify(aporte)
   }).then(checkStatus)
     .then(parseJSON)
-    .catch(error => console.log('Error: ', error));
+    .catch(error => {
+      return {
+        error: true,
+        errorMessage: error.status
+      }
+    });
 }
 
 function deleteAporte(id_aporte) {
@@ -62,7 +72,7 @@ function checkStatus(response) {
   if (response.status >= 200 && response.status < 300) {
     return response;
   } else {
-    const error = new Error(`HTTP Error ${response.statusText}`);
+    const error = new Error(response.statusText);
     error.status = response.statusText;
     error.response = response;
     throw error;

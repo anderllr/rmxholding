@@ -7,7 +7,7 @@ const user = process.env.DB_USER
 const pwd = process.env.DB_PASSWORD
 const dbname = process.env.DB_NAME
 
-const pool = mysql.createPool({
+const con = mysql.createConnection({
     host: host,
     user: user,
     password: pwd,
@@ -15,28 +15,20 @@ const pool = mysql.createPool({
     database: dbname
 });
 
+con.connect();
+
 const execQuery = (sql, res) => {
-    pool.query(sql,
-        function (err, rows, fields) {
+    con.query(sql,
+        function (err, results, fields) {
             if (err) throw err;
 
-            if (rows.length > 0) {
-                res.json(rows);
+            if (results.length > 0) {
+                res.json(results);
             } else {
                 res.json([]);
             }
         });
 }
-
-const execCommand = (sql) => {
-    pool.query(sql,
-        function (err, result) {
-            if (err) throw err;
-            //        console.log('result: ', result);
-            return result.affectedRows > 0
-        });
-}
-
 
 module.exports = (app) => {
     app.get('/api/personbyname', (req, res) => {
@@ -150,20 +142,21 @@ module.exports = (app) => {
                             '${dt_emis_pass}', '${gestor}', '${corretor}', '${dt_venc_pass}' )`;
         }
 
-        //console.log('Montou a query: ', req.body);
-
-        const ok = await execCommand(query);
-
-        if (ok) {
-            if (id_pessoa > 0) {
-                res.json([{ id_pessoa }]);
+        con.query(query, function (error, results, fields) {
+            if (error) {
+                errorMessage = error.sqlMessage ? error.sqlMessage : error.message;
+                res.statusMessage = errorMessage
+                res.status(400).end();
             } else {
-                //para o caso de inserção e considerando o cpf e e-mail como obrigatórios
-                query = `SELECT id_pessoa FROM pessoas WHERE cpf='${cpf}' AND email='${email}'`;
-                await execQuery(query, res);
+                if (id_pessoa > 0) {
+                    res.json({ id_pessoa: id_pessoa });
+                } else {
+                    //para o caso de inserção e considerando o cpf e e-mail como obrigatórios
+                    query = `SELECT id_pessoa FROM pessoas WHERE cpf='${cpf}' AND email='${email}'`;
+                    execQuery(query, res);
+                }
             }
-        }
-
+        })
     })
 
     app.post('/api/aportes', async (req, res) => {
@@ -191,17 +184,22 @@ module.exports = (app) => {
                      VALUES (${id_investidor}, ${id_gestor}, ${id_corretor}, '${dt_aporte}', ${vl_deposito}, 
                              ${vl_retorno}, ${id_moeda} )`;
         }
-        const ok = await execCommand(query);
 
-        if (ok) {
-            if (id_aporte > 0) {
-                res.json([{ id_pessoa }]);
+        con.query(query, function (error, results, fields) {
+            if (error) {
+                errorMessage = error.sqlMessage ? error.sqlMessage : error.message;
+                res.statusMessage = errorMessage
+                res.status(400).end();
             } else {
-                //para o caso de inserção e considerando o cpf e e-mail como obrigatórios
-                query = `SELECT MAX(id_aporte) id_aporte FROM aportes`;
-                await execQuery(query, res);
+                if (id_aporte > 0) {
+                    res.json({ id_aporte });
+                } else {
+                    //para o caso de inserção e considerando o cpf e e-mail como obrigatórios
+                    query = `SELECT MAX(id_aporte) id_aporte FROM aportes`;
+                    execQuery(query, res);
+                }
             }
-        }
+        })
     })
 
     //*************** ROTAS DE EXCLUSÃO *************//
@@ -217,10 +215,15 @@ module.exports = (app) => {
 
         if (id_aporte !== 0) {
             query = `DELETE FROM aportes WHERE id_aporte=${id_aporte}`;
-            const ok = await execCommand(query);
-            if (ok) {
-                res.json({ return: 'sucessfull' });
-            }
+            con.query(query, function (error, results, fields) {
+                if (error) {
+                    errorMessage = error.sqlMessage ? error.sqlMessage : error.message;
+                    res.statusMessage = errorMessage
+                    res.status(400).end();
+                } else {
+                    res.json(results);
+                }
+            })
         }
     })
 }
