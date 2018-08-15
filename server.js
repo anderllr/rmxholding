@@ -2,6 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const env = require('dotenv').config();
+const passport = require('passport');
+const cookieParser = require('cookie-parser');
 
 const routes = require('./server/config/routes');
 
@@ -24,17 +26,17 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 
-// Express only serves static assets in production
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static('client/build'));
+// required for passport
+app.use(cookieParser());
+app.use(session({
+    secret: process.env.SECRET,
+    resave: true,
+    saveUninitialized: true
+})); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
 
-    // Return the main index.html, so react-router render the route in the client
-    app.get('/', (req, res) => {
-        res.sendFile(path.resolve('client/build', 'index.html'));
-    });
-}
-
-routes(app);
+routes(app, passport);
 
 app.listen(PORT, () => {
     console.log(`Server is running at: http://localhost:${PORT}/`);

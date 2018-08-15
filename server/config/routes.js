@@ -1,19 +1,7 @@
 const mysql = require('mysql');
-const env = require('dotenv').config();
+const dbconfig = require('./database');
 
-
-const host = process.env.DB_HOST
-const user = process.env.DB_USER
-const pwd = process.env.DB_PASSWORD
-const dbname = process.env.DB_NAME
-
-const con = mysql.createConnection({
-    host: host,
-    user: user,
-    password: pwd,
-    port: "3306",
-    database: dbname
-});
+const con = mysql.createConnection(dbconfig.connection);
 
 con.connect();
 
@@ -30,8 +18,8 @@ const execQuery = (sql, res) => {
         });
 }
 
-module.exports = (app) => {
-    app.get('/api/personbyname', (req, res) => {
+module.exports = (app, passport) => {
+    app.get('/api/personbyname', isAuth, (req, res) => {
 
         const name = req.query.name;
         if (!name) {
@@ -52,7 +40,7 @@ module.exports = (app) => {
 
     });
 
-    app.get('/api/personbyemail', (req, res) => {
+    app.get('/api/personbyemail', isAuth, (req, res) => {
 
         const email = req.query.email;
 
@@ -72,7 +60,7 @@ module.exports = (app) => {
 
     });
 
-    app.get('/api/moedas', (req, res) => {
+    app.get('/api/moedas', isAuth, (req, res) => {
 
         let query = `SELECT * FROM moedas`;
 
@@ -80,7 +68,7 @@ module.exports = (app) => {
 
     });
 
-    app.get('/api/aportebyinvestor', (req, res) => {
+    app.get('/api/aportebyinvestor', isAuth, (req, res) => {
 
         const id_investidor = req.query.id_investidor;
 
@@ -102,7 +90,7 @@ module.exports = (app) => {
 
 
     //*************** ROTAS DE INCLUSÃO ********/
-    app.post('/api/pessoas', async (req, res) => {
+    app.post('/api/pessoas', isAuth, async (req, res) => {
         //console.log('Entrou na API');
         if (!req.body) {
             res.json({
@@ -159,7 +147,7 @@ module.exports = (app) => {
         })
     })
 
-    app.post('/api/aportes', async (req, res) => {
+    app.post('/api/aportes', isAuth, async (req, res) => {
 
         if (!req.body) {
             res.json({
@@ -203,7 +191,7 @@ module.exports = (app) => {
     })
 
     //*************** ROTAS DE EXCLUSÃO *************//
-    app.delete('/api/aportes/:id', async (req, res) => {
+    app.delete('/api/aportes/:id', isAuth, async (req, res) => {
         if (!req.params.id) {
             res.json({
                 error: 'Missing required parameters',
@@ -226,4 +214,30 @@ module.exports = (app) => {
             })
         }
     })
+
+    /*********************************************
+    *  ROTAS DE LOGIN/SIGNUP E LOGOUT
+    * ********************************************/
+    app.post('/api/login', passport.authenticate('local'), (req, res) => {
+        res.json(req.user);
+    });
+
+    app.post('/api/signup', (req, res) => {
+        //TODO: Regra para verificar se e-mail existe e se os dados vieram e salvar no banco de dados
+        //res.json(req.user);
+    });
+
+    app.get('/logout', function (req, res) {
+        req.logout();
+        res.json('Logout Successful');
+    })
+}
+
+function isAuth(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+
+    res.statusMessage = 'Você não está logado!';
+    res.status(401).end();
 }
